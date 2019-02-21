@@ -1,0 +1,291 @@
+{
+	"info": {
+		"_postman_id": "0e60f89c-9dfe-564e-b2da-3ab90d114412",
+		"name": "newman api",
+		"description": "postman+jenkins自动化",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "抽奖",
+			"item": [
+				{
+					"name": "是否为 新用户",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3cdf501d-812a-454e-a912-5632038cb17a",
+								"exec": [
+									"postman.clearGlobalVariable(\"mobile\");\r",
+									"\r",
+									"//生成手机号\r",
+									"var mobile = '158'+parseInt(Math.random()*100000000);\r",
+									"//console.log('手机号='+ mobile);\r",
+									"pm.environment.set(\"mobile\", mobile);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "7ee72d3b-40be-4ad2-8f8b-68be2ae42eb4",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// 请求时长判断，大于等于limitReqTime 时报错",
+									"// limitReqTime 作为环境变量可动态配置",
+									"var limitReqTime = pm.environment.get(\"limitReqTime\");",
+									"if(responseTime < parseInt(limitReqTime)){",
+									"   tests[\"Request Success\"] = true;",
+									"}else{",
+									"   // 超时，打印url和实际请求时间responseTime，responseTime是工具本身提供",
+									"   tests[\"[INFO]Request success, BUT time is too long: \" + request.url + \" 请求时间：\" + responseTime] = false;",
+									"}",
+									"pm.test(\"Body matches string\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"success\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"hyqc\":\"{{name}}\",\"mobile\":\"{{mobile}}\"}"
+						},
+						"url": {
+							"raw": "{{bsteelUrl}}luck/newRegist.do",
+							"host": [
+								"{{bsteelUrl}}luck"
+							],
+							"path": [
+								"newRegist.do"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "抽奖接口",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d0ddda6f-2980-4896-ac7a-eb07da2dab83",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// 请求时长判断，大于等于limitReqTime 时报错",
+									"// limitReqTime 作为环境变量可动态配置",
+									"var limitReqTime = pm.environment.get(\"limitReqTime\");",
+									"if(responseTime < parseInt(limitReqTime)){",
+									"   tests[\"Request Success\"] = true;",
+									"}else{",
+									"   // 超时，打印url和实际请求时间responseTime，responseTime是工具本身提供",
+									"   tests[\"[INFO]Request success, BUT time is too long: \" + request.url + \" 请求时间：\" + responseTime] = false;",
+									"}",
+									"pm.test(\"Body matches string\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"success\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"hyqc\":\"{{name}}\",\"mobile\":\"{{mobile}}\"}"
+						},
+						"url": {
+							"raw": "{{bsteelUrl}}luck/luckyDraw.do",
+							"host": [
+								"{{bsteelUrl}}luck"
+							],
+							"path": [
+								"luckyDraw.do"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. 接口测试",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e02f92ab-151a-4989-98da-7bed5b3fe9ca",
+						"exec": [
+							"//断言url是不是通的",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"//检查头信息 不区分大小写",
+							"tests[\"Content-Type is present\"] = postman.getResponseHeader(\"content-Type\");",
+							"",
+							"//定义验证的json",
+							"var schema = {",
+							"    ",
+							"    properties:{",
+							"        status: {type:'string'},",
+							"        last_updated: {type:'string'}",
+							"    }",
+							"};",
+							"",
+							"//返回的响应流是不是定义的schema格式",
+							"tests[\"Valid data schema\"] = tv4.validate(responseBody,schema);",
+							"",
+							"//将响应流转成json，并断言属性值是不是good",
+							"var jsonData = JSON.parse(responseBody);",
+							"tests[\"Github status is good\"] = jsonData.status === 'good';",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://status.github.com/api/status.json",
+					"protocol": "https",
+					"host": [
+						"status",
+						"github",
+						"com"
+					],
+					"path": [
+						"api",
+						"status.json"
+					]
+				},
+				"description": "测试接口 通过json的方式来传输数据"
+			},
+			"response": []
+		},
+		{
+			"name": "2. 打开博客园",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Body matches 找找看\"] = responseBody.has(\"找找看\");"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://www.cnblogs.com/",
+					"protocol": "http",
+					"host": [
+						"www",
+						"cnblogs",
+						"com"
+					],
+					"path": [
+						""
+					]
+				},
+				"description": "打开博客园 验证是否打开正确"
+			},
+			"response": []
+		},
+		{
+			"name": "3.查询启信宝信息接口",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "345cee1f-1138-4847-b599-767664c7d60a",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"// 请求时长判断，大于等于limitReqTime 时报错",
+							"// limitReqTime 作为环境变量可动态配置",
+							"var limitReqTime = pm.environment.get(\"limitReqTime\");",
+							"if(responseTime < parseInt(limitReqTime)){",
+							"   tests[\"Request Success\"] = true;",
+							"}else{",
+							"   // 超时，打印url和实际请求时间responseTime，responseTime是工具本身提供",
+							"   tests[\"[INFO]Request success, BUT time is too long: \" + request.url + \" 请求时间：\" + responseTime] = false;",
+							"}",
+							"pm.test(\"Body is correct\", function () {",
+							"    pm.response.to.have.body(\"success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "keyword",
+							"value": "{{name}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{bsteelUrl}}busInfo/getCompanyInfo",
+					"host": [
+						"{{bsteelUrl}}busInfo"
+					],
+					"path": [
+						"getCompanyInfo"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
