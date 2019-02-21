@@ -197,10 +197,14 @@
 				{
 					"listen": "test",
 					"script": {
-						"type": "text/javascript",
+						"id": "7722cbc0-6761-4af2-9187-33f5195deaca",
 						"exec": [
-							"tests[\"Body matches 找找看\"] = responseBody.has(\"找找看\");"
-						]
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});tests[\"Body matches 找找看\"] = responseBody.has(\"找找看\");"
+						],
+						"type": "text/javascript"
 					}
 				}
 			],
